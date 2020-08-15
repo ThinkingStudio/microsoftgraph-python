@@ -1,4 +1,4 @@
-from microsoftgraph.exceptions import TokenRequired
+from ts_microsoftgraph.exceptions import TokenRequired
 from functools import wraps
 
 

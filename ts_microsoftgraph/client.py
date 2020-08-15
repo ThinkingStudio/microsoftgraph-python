@@ -2,8 +2,8 @@ import base64
 import mimetypes
 import requests
 import json
-from microsoftgraph import exceptions
-from microsoftgraph.decorators import token_required
+from ts_microsoftgraph import exceptions
+from ts_microsoftgraph.decorators import token_required
 from urllib.parse import urlencode, urlparse, quote_plus
 
 

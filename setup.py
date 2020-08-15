@@ -6,7 +6,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
-setup(name='ts-microsoftgraph-python',
+setup(name='ts-ts_microsoftgraph-python',
       version='0.2.0',
       description='API wrapper for Microsoft Graph written in Python',
       long_description=read('README.md'),
