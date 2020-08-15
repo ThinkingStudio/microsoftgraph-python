@@ -10,14 +10,25 @@ pip install microsoftgraph-python
 If you need an office 365 token, send office365 attribute in True like this:
 ```
 from microsoftgraph.client import Client
-client = Client('CLIENT_ID', 'CLIENT_SECRET', account_type='by defect common', office365=True)
+client = Client('CLIENT_ID', 'CLIENT_SECRET', account_type='by default common', office365=True)
 ```
 
 If you don't, just instance the library like this:
 ```
 from microsoftgraph.client import Client
-client = Client('CLIENT_ID', 'CLIENT_SECRET', account_type='by defect common')
+client = Client('CLIENT_ID', 'CLIENT_SECRET', account_type='by default common')
 ```
+
+## Changelog
+
+### 2020-08-?? version 0.2.0
+* Forked from https://github.com/jkmartindale/microsoftgraph-python - but took master branch and reapplied the swap of authority URLs
+* Renamed the project so it can be published on PyPi since the original is not really being maintained
+* Breaking changes from the forked project, totally different coherent naming convention for methods
+* Fixed issues with O365 vs MS authentication being opposite to what you would expect (this is an issue that was identified upstream)
+* Added documentation for the calls and split the old README up into those pages - TODO: add to this documentation
+* Added proper support for email 
+
 
 #### Get authorization url
 ```

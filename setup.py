@@ -7,7 +7,7 @@ def read(fname):
 
 
 setup(name='ts-microsoftgraph-python',
-      version='0.1.7',
+      version='0.2.0',
       description='API wrapper for Microsoft Graph written in Python',
       long_description=read('README.md'),
       url='https://github.com/ThinkingStudio/microsoftgraph-python',
@@ -15,7 +15,7 @@ setup(name='ts-microsoftgraph-python',
       author='Miguel Ferrer, Nerio Rincon, Yordy Gelvez, James Martindale, Joe Cincotta',
       author_email='joe@thinking.studio',
       license='MIT',
-      packages=['microsoftgraph'],
+      packages=['ts_microsoftgraph'],
       install_requires=[
           'requests',
       ],

@@ -7,15 +7,20 @@ from microsoftgraph.decorators import token_required
 from urllib.parse import urlencode, urlparse, quote_plus
 
 
+"""
+TODO: do I need to use another user context to read the mailbox? 
+ 
+"""
+
 class Client(object):
-    AUTHORITY_URL = 'https://login.microsoftonline.com/'
-    AUTH_ENDPOINT = '/oauth2/v2.0/authorize?'
-    TOKEN_ENDPOINT = '/oauth2/v2.0/token'
+    OFFICE365_AUTHORITY_URL = 'https://login.microsoftonline.com/'
+    OFFICE365_AUTH_ENDPOINT = '/oauth2/v2.0/authorize?'
+    OFFICE365_TOKEN_ENDPOINT = '/oauth2/v2.0/token'
     RESOURCE = 'https://graph.microsoft.com/'
 
-    OFFICE365_AUTHORITY_URL = 'https://login.live.com'
-    OFFICE365_AUTH_ENDPOINT = '/oauth20_authorize.srf?'
-    OFFICE365_TOKEN_ENDPOINT = '/oauth20_token.srf'
+    AUTHORITY_URL = 'https://login.live.com'
+    AUTH_ENDPOINT = '/oauth20_authorize.srf?'
+    TOKEN_ENDPOINT = '/oauth20_token.srf'
 
     def __init__(self, client_id, client_secret, api_version='v1.0', account_type='common', office365=False):
         self.client_id = client_id
@@ -131,7 +136,7 @@ class Client(object):
             self.token = token
 
     @token_required
-    def get_me(self, params=None):
+    def me(self, params=None):
         """Retrieve the properties and relationships of user object.
 
         Note: Getting a user returns a default set of properties only (businessPhones, displayName, givenName, id,
@@ -148,21 +153,7 @@ class Client(object):
         return self._get(self.base_url + 'me', params=params)
 
     @token_required
-    def get_message(self, message_id, params=None):
-        """Retrieve the properties and relationships of a message object.
-
-        Args:
-            message_id: A dict.
-            params:
-
-        Returns:
-            A dict.
-
-        """
-        return self._get(self.base_url + 'me/messages/' + message_id, params=params)
-
-    @token_required
-    def create_subscription(self, change_type, notification_url, resource, expiration_datetime, client_state=None):
+    def subscription_create(self, change_type, notification_url, resource, expiration_datetime, client_state=None):
         """Creating a subscription is the first step to start receiving notifications for a resource.
 
         Args:
@@ -187,7 +178,7 @@ class Client(object):
         return self._post(self.base_url + 'subscriptions', json=data)
 
     @token_required
-    def renew_subscription(self, subscription_id, expiration_datetime):
+    def subscription_renew(self, subscription_id, expiration_datetime):
         """The client can renew a subscription with a specific expiration date of up to three days from the time
         of request. The expirationDateTime property is required.
 
@@ -206,7 +197,7 @@ class Client(object):
         return self._patch(self.base_url + 'subscriptions/{}'.format(subscription_id), json=data)
 
     @token_required
-    def delete_subscription(self, subscription_id):
+    def subscription_delete(self, subscription_id):
         """The client can stop receiving notifications by deleting the subscription using its ID.
 
         Args:
@@ -218,9 +209,103 @@ class Client(object):
         """
         return self._delete(self.base_url + 'subscriptions/{}'.format(subscription_id))
 
+    # Mail
+    """
+    TODO: 
+    GET /me/mailFolders/inbox
+    Enumerate the list of well known folder names:
+    https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0
+
+    how to handle the object (id) to then pass into next requests? 
+
+    GET /me/mailFolders/{id}/messages
+    then, to select an individual message:
+    GET /me/mailFolders/{id}/messages/{id}
+
+    To get the MIME content of the specified message:
+    GET /me/messages/{id}/$value 
+
+
+    """
+
+    @token_required
+    def message_folder_list(self, params=None):
+        """Retrieve the list of mailbox folders.
+        Args:
+            params:
+        Returns:
+            A dict.
+        """
+        return self._get(self.base_url + '/me/mailFolders/', params=params)
+
+    @token_required
+    def message_list(self, folder_id, params=None):
+        """Retrieve the list of messages in a mailbox folder.
+        Args:
+            folder_id: selected mail folder.
+            params:
+        Returns:
+            A dict.
+        """
+        return self._get(self.base_url + '/me/mailFolders/{id}/messages'.format(id=folder_id), params=params)
+
+    @token_required
+    def message_get(self, message_id, params=None, mime_content=False):
+        """Retrieve the properties and relationships of a message object.
+        Args:
+            message_id: A dict.
+            params:
+        Returns:
+            A dict.
+        """
+        return self._get(self.base_url + 'me/messages/' + message_id + ("" if not mime_content else "/$value"), params=params)
+
+    @token_required
+    def message_send(self, subject=None, recipients=None, body='', content_type='HTML', attachments=None):
+        """Helper to send email from current user.
+
+        Args:
+            subject: email subject (required)
+            recipients: list of recipient email addresses (required)
+            body: body of the message
+            content_type: content type (default is 'HTML')
+            attachments: list of file attachments (local filenames)
+
+        Returns:
+            Returns the response from the POST to the sendmail API.
+        """
+
+        # Verify that required arguments have been passed.
+        if not all([subject, recipients]):
+            raise ValueError('sendmail(): required arguments missing')
+
+        # Create recipient list in required format.
+        recipient_list = [{'EmailAddress': {'Address': address}} for address in recipients]
+
+        # Create list of attachments in required format.
+        attached_files = []
+        if attachments:
+            for filename in attachments:
+                b64_content = base64.b64encode(open(filename, 'rb').read())
+                mime_type = mimetypes.guess_type(filename)[0]
+                mime_type = mime_type if mime_type else ''
+                attached_files.append(
+                    {'@odata.type': '#microsoft.graph.fileAttachment', 'ContentBytes': b64_content.decode('utf-8'),
+                     'ContentType': mime_type, 'Name': filename})
+
+        # Create email message in required format.
+        email_msg = {'Message': {'Subject': subject,
+                                 'Body': {'ContentType': content_type, 'Content': body},
+                                 'ToRecipients': recipient_list,
+                                 'Attachments': attached_files},
+                     'SaveToSentItems': 'true'}
+
+        # Do a POST to Graph's sendMail API and return the response.
+        return self._post(self.base_url + 'me/microsoft.graph.sendMail', json=email_msg)
+
     # Onenote
     @token_required
-    def list_notebooks(self):
+    def onenote_list(self):
         """Retrieve a list of notebook objects.
 
         Returns:
@@ -230,7 +315,7 @@ class Client(object):
         return self._get(self.base_url + 'me/onenote/notebooks')
 
     @token_required
-    def get_notebook(self, notebook_id):
+    def onenote_get(self, notebook_id):
         """Retrieve the properties and relationships of a notebook object.
 
         Args:
@@ -243,7 +328,7 @@ class Client(object):
         return self._get(self.base_url + 'me/onenote/notebooks/' + notebook_id)
 
     @token_required
-    def get_notebook_sections(self, notebook_id):
+    def onenote_sections(self, notebook_id):
         """Retrieve the properties and relationships of a notebook object.
 
         Args:
@@ -256,7 +341,7 @@ class Client(object):
         return self._get(self.base_url + 'me/onenote/notebooks/{}/sections'.format(notebook_id))
 
     @token_required
-    def create_page(self, section_id, files):
+    def onenote_create_page(self, section_id, files):
         """Create a new page in the specified section.
 
         Args:
@@ -270,7 +355,7 @@ class Client(object):
         return self._post(self.base_url + '/me/onenote/sections/{}/pages'.format(section_id), files=files)
 
     @token_required
-    def list_pages(self, params=None):
+    def onenote_list_pages(self, params=None):
         """Create a new page in the specified section.
 
         Args:
@@ -284,7 +369,7 @@ class Client(object):
 
     # Calendar
     @token_required
-    def get_me_events(self):
+    def calendar_events(self):
         """Get a list of event objects in the user's mailbox. The list contains single instance meetings and
         series masters.
 
@@ -297,7 +382,7 @@ class Client(object):
         return self._get(self.base_url + 'me/events')
 
     @token_required
-    def create_calendar_event(self, subject, content, start_datetime, start_timezone, end_datetime, end_timezone,
+    def calendar_create_event(self, subject, content, start_datetime, start_timezone, end_datetime, end_timezone,
                               location, calendar=None, **kwargs):
         """
         Create a new calendar event.
@@ -349,7 +434,7 @@ class Client(object):
         return self._post(self.base_url + url, json=body)
 
     @token_required
-    def create_calendar(self, name):
+    def calendar_create(self, name):
         """Create an event in the user's default calendar or specified calendar.
 
         You can specify the time zone for each of the start and end times of the event as part of these values,
@@ -370,7 +455,7 @@ class Client(object):
         return self._post(self.base_url + 'me/calendars', json=body)
 
     @token_required
-    def get_me_calendars(self):
+    def calendars_list(self):
         """Get all the user's calendars (/calendars navigation property), get the calendars from the default
         calendar group or from a specific calendar group.
 
@@ -380,53 +465,9 @@ class Client(object):
         """
         return self._get(self.base_url + 'me/calendars')
 
-    # Mail
-    @token_required
-    def send_mail(self, subject=None, recipients=None, body='', content_type='HTML', attachments=None):
-        """Helper to send email from current user.
-
-        Args:
-            subject: email subject (required)
-            recipients: list of recipient email addresses (required)
-            body: body of the message
-            content_type: content type (default is 'HTML')
-            attachments: list of file attachments (local filenames)
-
-        Returns:
-            Returns the response from the POST to the sendmail API.
-        """
-
-        # Verify that required arguments have been passed.
-        if not all([subject, recipients]):
-            raise ValueError('sendmail(): required arguments missing')
-
-        # Create recipient list in required format.
-        recipient_list = [{'EmailAddress': {'Address': address}} for address in recipients]
-
-        # Create list of attachments in required format.
-        attached_files = []
-        if attachments:
-            for filename in attachments:
-                b64_content = base64.b64encode(open(filename, 'rb').read())
-                mime_type = mimetypes.guess_type(filename)[0]
-                mime_type = mime_type if mime_type else ''
-                attached_files.append(
-                    {'@odata.type': '#microsoft.graph.fileAttachment', 'ContentBytes': b64_content.decode('utf-8'),
-                     'ContentType': mime_type, 'Name': filename})
-
-        # Create email message in required format.
-        email_msg = {'Message': {'Subject': subject,
-                                 'Body': {'ContentType': content_type, 'Content': body},
-                                 'ToRecipients': recipient_list,
-                                 'Attachments': attached_files},
-                     'SaveToSentItems': 'true'}
-
-        # Do a POST to Graph's sendMail API and return the response.
-        return self._post(self.base_url + 'me/microsoft.graph.sendMail', json=email_msg)
-
     # Outlook
     @token_required
-    def outlook_get_me_contacts(self, data_id=None, params=None):
+    def contacts_list(self, data_id=None, params=None):
         if data_id is None:
             url = "{0}me/contacts".format(self.base_url)
         else:
@@ -434,22 +475,22 @@ class Client(object):
         return self._get(url, params=params)
 
     @token_required
-    def outlook_create_me_contact(self, **kwargs):
+    def contact_create(self, **kwargs):
         url = "{0}me/contacts".format(self.base_url)
         return self._post(url, **kwargs)
 
     @token_required
-    def outlook_create_contact_in_folder(self, folder_id, **kwargs):
+    def contact_create_in_folder(self, folder_id, **kwargs):
         url = "{0}/me/contactFolders/{1}/contacts".format(self.base_url, folder_id)
         return self._post(url, **kwargs)
 
     @token_required
-    def outlook_get_contact_folders(self, params=None):
+    def contact_folders(self, params=None):
         url = "{0}me/contactFolders".format(self.base_url)
         return self._get(url, params=params)
 
     @token_required
-    def outlook_create_contact_folder(self, **kwargs):
+    def contact_create_folder(self, **kwargs):
         url = "{0}me/contactFolders".format(self.base_url)
         return self._post(url, **kwargs)
 
@@ -484,17 +525,17 @@ class Client(object):
         return self._post(url, **kwargs)
 
     @token_required
-    def drive_download_contents(self, item_id, params=None, **kwargs):
+    def drive_download(self, item_id, params=None, **kwargs):
         url = "https://graph.microsoft.com/beta/me/drive/items/{0}/content".format(item_id)
         return self._get(url, params=params, **kwargs)
 
     @token_required
-    def drive_get_item(self, item_id, params=None, **kwargs):
+    def drive_get(self, item_id, params=None, **kwargs):
         url = "https://graph.microsoft.com/beta/me/drive/items/{0}".format(item_id)
         return self._get(url, params=params, **kwargs)
 
     @token_required
-    def drive_upload_item(self, item_id, params=None, **kwargs):
+    def drive_upload(self, item_id, params=None, **kwargs):
         url = "https://graph.microsoft.com/beta/me/drive/items/{0}/content".format(item_id)
         kwargs['headers'] = {'Content-Type': 'text/plain'}
         return self._put(url, params=params, **kwargs)
