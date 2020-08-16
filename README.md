@@ -21,6 +21,11 @@ client = Client('CLIENT_ID', 'CLIENT_SECRET', account_type='by default common')
 
 ## Changelog
 
+### Current WIP
+* Migrating wuthentication to use MSAL instead of existing multi-step approach
+this allows the library to be used for more than just web apps (services etc)
+- __not completed yet__ this code is not yet ready for usage.
+
 ### 2020-08-?? version 0.2.0
 * Forked from https://github.com/jkmartindale/microsoftgraph-python - but took master branch and reapplied the swap of authority URLs
 * Renamed the project so it can be published on PyPi since the original is not really being maintained
