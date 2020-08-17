@@ -4,7 +4,7 @@ import msal
 class Auth(object):
     def __init__(self, client_id: str, tenant_id: str, secret: str, scope=".default"):
         authority = "https://login.microsoftonline.com/" + tenant_id
-        app = msal.ConfidentialClientApplication(client_id, authority, secret)
+        app = msal.ConfidentialClientApplication( client_id, authority=authority, client_credential=secret)
         result = app.acquire_token_silent(scope, account=None)
         if not result:
             # No suitable token exists in cache. Let's get a new one from AAD
