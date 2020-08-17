@@ -3,6 +3,7 @@ import mimetypes
 import requests
 import json
 from ts_microsoftgraph import exceptions
+from ts_microsoftgraph.auth import Auth
 from ts_microsoftgraph.decorators import token_required
 from urllib.parse import urlencode, urlparse, quote_plus
 
@@ -13,127 +14,12 @@ TODO: do I need to use another user context to read the mailbox?
 """
 
 class Client(object):
-    OFFICE365_AUTHORITY_URL = 'https://login.microsoftonline.com/'
-    OFFICE365_AUTH_ENDPOINT = '/oauth2/v2.0/authorize?'
-    OFFICE365_TOKEN_ENDPOINT = '/oauth2/v2.0/token'
     RESOURCE = 'https://graph.microsoft.com/'
-
-    AUTHORITY_URL = 'https://login.live.com'
-    AUTH_ENDPOINT = '/oauth20_authorize.srf?'
-    TOKEN_ENDPOINT = '/oauth20_token.srf'
-
-    def __init__(self, client_id, client_secret, api_version='v1.0', account_type='common', office365=False):
-        self.client_id = client_id
-        self.client_secret = client_secret
+    def __init__(self, auth: Auth, api_version='v1.0'):
         self.api_version = api_version
-        self.account_type = account_type
-
         self.base_url = self.RESOURCE + self.api_version + '/'
-        self.token = None
-        self.office365 = office365
-        self.office365_token = None
-
-    def authorization_url(self, redirect_uri, scope, state=None):
-        """
-
-        Args:
-            redirect_uri: The redirect_uri of your app, where authentication responses can be sent and received by
-            your app.  It must exactly match one of the redirect_uris you registered in the app registration portal
-
-            scope: A list of the Microsoft Graph permissions that you want the user to consent to. This may also
-            include OpenID scopes.
-
-            state: A value included in the request that will also be returned in the token response.
-            It can be a string of any content that you wish.  A randomly generated unique value is typically
-            used for preventing cross-site request forgery attacks.  The state is also used to encode information
-            about the user's state in the app before the authentication request occurred, such as the page or view
-            they were on.
-
-        Returns:
-            A string.
-
-        """
-        params = {
-            'client_id': self.client_id,
-            'redirect_uri': redirect_uri,
-            'scope': ' '.join(scope),
-            'response_type': 'code',
-            'response_mode': 'query'
-        }
-
-        if state:
-            params['state'] = state
-        if self.office365:
-            response = self.OFFICE365_AUTHORITY_URL + self.OFFICE365_AUTH_ENDPOINT + urlencode(params)
-        else:
-            response = self.AUTHORITY_URL + self.account_type + self.AUTH_ENDPOINT + urlencode(params)
-        return response
-
-    def exchange_code(self, redirect_uri, code):
-        """Exchanges a code for a Token.
-
-        Args:
-            redirect_uri: The redirect_uri of your app, where authentication responses can be sent and received by
-            your app.  It must exactly match one of the redirect_uris you registered in the app registration portal
-
-            code: The authorization_code that you acquired in the first leg of the flow.
-
-        Returns:
-            A dict.
-
-        """
-        data = {
-            'client_id': self.client_id,
-            'redirect_uri': redirect_uri,
-            'client_secret': self.client_secret,
-            'code': code,
-            'grant_type': 'authorization_code',
-        }
-        if self.office365:
-            response = requests.post(self.OFFICE365_AUTHORITY_URL + self.OFFICE365_TOKEN_ENDPOINT, data=data)
-        else:
-            response = requests.post(self.AUTHORITY_URL + self.account_type + self.TOKEN_ENDPOINT, data=data)
-        return self._parse(response)
-
-    def refresh_token(self, redirect_uri, refresh_token):
-        """
-
-        Args:
-            redirect_uri: The redirect_uri of your app, where authentication responses can be sent and received by
-            your app.  It must exactly match one of the redirect_uris you registered in the app registration portal
-
-            refresh_token: An OAuth 2.0 refresh token. Your app can use this token acquire additional access tokens
-            after the current access token expires. Refresh tokens are long-lived, and can be used to retain access
-            to resources for extended periods of time.
-
-        Returns:
-            A dict.
-
-        """
-        data = {
-            'client_id': self.client_id,
-            'redirect_uri': redirect_uri,
-            'client_secret': self.client_secret,
-            'refresh_token': refresh_token,
-            'grant_type': 'refresh_token',
-        }
-        if self.office365:
-            response = requests.post(self.OFFICE365_AUTHORITY_URL + self.OFFICE365_TOKEN_ENDPOINT, data=data)
-        else:
-            response = requests.post(self.AUTHORITY_URL + self.account_type + self.TOKEN_ENDPOINT, data=data)
-        return self._parse(response)
-
-    def set_token(self, token):
-        """Sets the Token for its use in this library.
-
-        Args:
-            token: A string with the Token.
-
-        """
-        if self.office365:
-            self.office365_token = token
-        else:
-            self.token = token
+        self.auth: Auth = auth
+        self.token = auth.get_token()
 
     @token_required
     def me(self, params=None):
