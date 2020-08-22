@@ -13,15 +13,20 @@ class Auth(object):
         self._redirect_uri = redirect_uri
         self._token = None
 
+    def get_token(self):
+        return self._token
+
     def get_service_token(self):
-        result = self._build_msal_app().acquire_token_silent(scopes=[self._scope], account=None)
+        cache = self._load_cache()
+        result = self._build_msal_app(cache).acquire_token_silent(scopes=[self._scope], account=None)
         if not result:
             # No suitable token exists in cache. Let's get a new one from AAD
-            result = self._build_msal_app().acquire_token_for_client(scopes=[self._scope])
+            result = self._build_msal_app(cache).acquire_token_for_client(scopes=[self._scope])
         if "access_token" in result:
             self._token = result
         else:
             raise EnvironmentError(result.get("error") + ":" + result.get("error_description") + ":" + result.get("correlation_id"))
+        self._save_cache(cache)
         return self._token
 
     def get_auth_url(self):
@@ -36,13 +41,13 @@ class Auth(object):
             code,
             scopes=[self._scope],
             redirect_uri=self._redirect_uri)
-        if "error" in result:
-            return "Login failure: %s, %s" % (
-                result["error"], result.get("error_description"))
-        # session["user"] = result.get("id_token_claims")
+        if "access_token" in result:
+            self._token = result
+        else:
+            raise EnvironmentError(result.get("error") + ":" + result.get("error_description") + ":" + result.get("correlation_id"))
         print(result)
         self._save_cache(cache)
-        return
+        return self._token
 
     def _load_cache(self):
         cache = msal.SerializableTokenCache()

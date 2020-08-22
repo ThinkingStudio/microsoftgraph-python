@@ -15,11 +15,10 @@ TODO: do I need to use another user context to read the mailbox?
 
 class Client(object):
     RESOURCE = 'https://graph.microsoft.com/'
-    def __init__(self, auth: Auth, api_version='v1.0'):
+    def __init__(self, token, api_version='v1.0'):
         self.api_version = api_version
         self.base_url = self.RESOURCE + self.api_version + '/'
-        self.auth: Auth = auth
-        self.token = auth.get_token()
+        self.token = token
 
     @token_required
     def me(self, params=None):
