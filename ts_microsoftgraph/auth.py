@@ -39,7 +39,7 @@ class Auth(object):
         cache = self._load_cache()
         result = self._build_msal_app(cache=cache, authority=self._authority).acquire_token_silent(scopes=[self._scope], account=None)
         if not result:
-            result = self._build_msal_app(cache=cache, authority=None).acquire_token_by_authorization_code(
+            result = self._build_msal_app(cache=cache, authority=self._authority).acquire_token_by_authorization_code(
                 code,
                 scopes=[self._scope],
                 redirect_uri=self._redirect_uri)
