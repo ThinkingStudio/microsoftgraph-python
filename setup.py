@@ -17,6 +17,6 @@ setup(name='ts-microsoftgraph-python',
       license='MIT',
       packages=['ts_microsoftgraph'],
       install_requires=[
-          'requests','msal'
+          'requests'
       ],
       zip_safe=False)
