@@ -18,10 +18,10 @@ class Auth(object):
 
     def get_service_token(self):
         cache = self._load_cache()
-        result = self._build_msal_app(cache).acquire_token_silent(scopes=[self._scope], account=None)
+        result = self._build_msal_app(cache=cache, authority=self._authority).acquire_token_silent(scopes=[self._scope], account=None)
         if not result:
             # No suitable token exists in cache. Let's get a new one from AAD
-            result = self._build_msal_app(cache).acquire_token_for_client(scopes=[self._scope])
+            result = self._build_msal_app(cache=cache, authority=self._authority).acquire_token_for_client(scopes=[self._scope])
         if "access_token" in result:
             self._token = result
         else:
@@ -30,17 +30,19 @@ class Auth(object):
         return self._token
 
     def get_auth_url(self):
-        return self._build_msal_app().get_authorization_request_url(
+        return self._build_msal_app(cache=None, authority=self._authority).get_authorization_request_url(
             [self._scope],
             state=self._state,
             redirect_uri=self._redirect_uri)
 
     def get_user_token(self, code):
         cache = self._load_cache()
-        result = self._build_msal_app(cache).acquire_token_by_authorization_code(
-            code,
-            scopes=[self._scope],
-            redirect_uri=self._redirect_uri)
+        result = self._build_msal_app(cache=cache, authority=self._authority).acquire_token_silent(scopes=[self._scope], account=None)
+        if not result:
+            result = self._build_msal_app(cache=cache, authority=None).acquire_token_by_authorization_code(
+                code,
+                scopes=[self._scope],
+                redirect_uri=self._redirect_uri)
         if "access_token" in result:
             self._token = result
         else:
@@ -63,10 +65,10 @@ class Auth(object):
             if self._save_cache_handler is not None:
                 self._save_cache_handler(cache.serialize())
 
-    def _build_msal_app(self, cache=None):
+    def _build_msal_app(self, cache=None, authority=None):
         return msal.ConfidentialClientApplication(
             self._client_id,
-            authority=self._authority,
+            authority=authority,
             client_credential=self._secret,
             token_cache=cache)
 
