@@ -2,7 +2,7 @@ import msal
 import uuid
 
 class Auth(object):
-    def __init__(self, client_id: str, tenant_id: str, secret: str, scope=".default", redirect_uri="https://login.microsoftonline.com/common/oauth2/nativeclient", save_cache_handler=None, load_cache_handler=None, state_id=None):
+    def __init__(self, client_id: str, tenant_id: str, secret: str, scope=".default", account=None, redirect_uri="https://login.microsoftonline.com/common/oauth2/nativeclient", save_cache_handler=None, load_cache_handler=None, state_id=None):
         self._authority = "https://login.microsoftonline.com/" + tenant_id
         self._client_id = client_id
         self._secret = secret
@@ -12,16 +12,24 @@ class Auth(object):
         self._state = str(uuid.uuid1()) if state_id is None else state_id
         self._redirect_uri = redirect_uri
         self._token = None
+        self._account = account
 
     def get_token(self):
+        cache = self._load_cache()
+        result = self._build_msal_app(cache=cache).acquire_token_silent(scopes=[self._scope],account=self._account)
+        if "access_token" in result:
+            self._token = result
+        else:
+            raise EnvironmentError(result.get("error") + ":" + result.get("error_description") + ":" + result.get("correlation_id"))
+        self._save_cache(cache)
         return self._token
 
     def get_service_token(self):
         cache = self._load_cache()
-        result = self._build_msal_app(cache=cache, authority=self._authority).acquire_token_silent(scopes=[self._scope], account=None)
+        result = self._build_msal_app(cache=cache).acquire_token_silent(scopes=[self._scope], account=self._account)
         if not result:
             # No suitable token exists in cache. Let's get a new one from AAD
-            result = self._build_msal_app(cache=cache, authority=self._authority).acquire_token_for_client(scopes=[self._scope])
+            result = self._build_msal_app(cache=cache).acquire_token_for_client(scopes=[self._scope])
         if "access_token" in result:
             self._token = result
         else:
@@ -30,16 +38,16 @@ class Auth(object):
         return self._token
 
     def get_auth_url(self):
-        return self._build_msal_app(cache=None, authority=self._authority).get_authorization_request_url(
+        return self._build_msal_app(cache=None).get_authorization_request_url(
             [self._scope],
             state=self._state,
             redirect_uri=self._redirect_uri)
 
     def get_user_token(self, code):
         cache = self._load_cache()
-        result = self._build_msal_app(cache=cache, authority=self._authority).acquire_token_silent(scopes=[self._scope], account=None)
+        result = self._build_msal_app(cache=cache).acquire_token_silent(scopes=[self._scope],account=self._account)
         if not result:
-            result = self._build_msal_app(cache=cache, authority=self._authority).acquire_token_by_authorization_code(
+            result = self._build_msal_app(cache=cache).acquire_token_by_authorization_code(
                 code,
                 scopes=[self._scope],
                 redirect_uri=self._redirect_uri)
@@ -47,7 +55,6 @@ class Auth(object):
             self._token = result
         else:
             raise EnvironmentError(result.get("error") + ":" + result.get("error_description") + ":" + result.get("correlation_id"))
-        print(result)
         self._save_cache(cache)
         return self._token
 
@@ -65,10 +72,10 @@ class Auth(object):
             if self._save_cache_handler is not None:
                 self._save_cache_handler(cache.serialize())
 
-    def _build_msal_app(self, cache=None, authority=None):
+    def _build_msal_app(self, cache=None):
         return msal.ConfidentialClientApplication(
             self._client_id,
-            authority=authority,
+            authority=self._authority,
             client_credential=self._secret,
             token_cache=cache)
 
