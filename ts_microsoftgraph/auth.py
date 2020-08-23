@@ -37,9 +37,7 @@ class Auth(object):
             'grant_type': 'authorization_code',
         }
         response = requests.post(self._authority + "/oauth2/v2.0/token", data=data)
-        output = parse(response)
-        print(output)
-        return
+        return parse(response)
 
     def refresh_token(self, refresh_token):
         data = {
