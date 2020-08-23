@@ -2,6 +2,7 @@ import uuid
 from urllib.parse import urlencode
 import requests
 from ts_microsoftgraph.reponse_parser import parse
+import json
 
 class Auth(object):
     def __init__(self, client_id: str, tenant_id: str, secret: str, scope=".default", account=None, redirect_uri="https://login.microsoftonline.com/common/oauth2/nativeclient", save_cache_handler=None, load_cache_handler=None, state_id=None):
@@ -52,4 +53,15 @@ class Auth(object):
         return parse(response)
 
     def set_token(self, token):
+        if self._save_cache_handler is not None:
+            self._save_cache_handler(str(token))
         self._token = token
+
+    def get_token(self):
+        if self._token is not None:
+            return self._token
+        if self._load_cache_handler is not None:
+            self._token = json.loads(self._load_cache_handler())
+        return self._token
+
+
