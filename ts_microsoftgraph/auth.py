@@ -40,11 +40,11 @@ class Auth(object):
         self._set_token(parse(response))
 
     def _refresh_token(self):
-        t = self._token
-        if t is None:
-            if self._load_cache_handler is not None:
-                t = json.loads(self._load_cache_handler())
+        t = None
+        if self._load_cache_handler is not None:
+            t = json.loads(self._load_cache_handler())
         if t is not None:
+            print(t['access_token'])
             data = {
                 'client_id': self._client_id,
                 'redirect_uri': self._redirect_uri,
