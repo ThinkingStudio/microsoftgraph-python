@@ -5,7 +5,7 @@ from ts_microsoftgraph.reponse_parser import parse
 import json
 
 class Auth(object):
-    def __init__(self, client_id: str, tenant_id: str, secret: str, scope="./default", account=None, redirect_uri="https://login.microsoftonline.com/common/oauth2/nativeclient", save_cache_handler=None, load_cache_handler=None, state_id=None):
+    def __init__(self, client_id: str, tenant_id: str, secret: str, scope=".default", account=None, redirect_uri="https://login.microsoftonline.com/common/oauth2/nativeclient", save_cache_handler=None, load_cache_handler=None, state_id=None):
         self._authority = "https://login.microsoftonline.com/" + tenant_id
         self._client_id = client_id
         self._secret = secret
