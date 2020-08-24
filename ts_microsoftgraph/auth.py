@@ -47,6 +47,7 @@ class Auth(object):
             'refresh_token': token['access_token'],
             'grant_type': 'refresh_token',
         }
+        print(data)
         response = requests.post(self._authority + "/oauth2/v2.0/token", data=data)
         self._set_token(parse(response))
 
