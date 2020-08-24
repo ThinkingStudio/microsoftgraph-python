@@ -39,7 +39,7 @@ class Auth(object):
         response = requests.post(self._authority + "/oauth2/v2.0/token", data=data)
         self._set_token(parse(response))
 
-    def _refresh_token(self, token):
+    def refresh_token(self, token):
         data = {
             'client_id': self._client_id,
             'redirect_uri': self._redirect_uri,
@@ -59,8 +59,7 @@ class Auth(object):
 
     def get_token(self):
         if self._load_cache_handler is not None:
-            t = json.loads(self._load_cache_handler())
-            self._refresh_token(t)
+            self._token = json.loads(self._load_cache_handler())
         return self._token
 
 
