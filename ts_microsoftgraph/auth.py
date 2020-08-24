@@ -39,21 +39,16 @@ class Auth(object):
         response = requests.post(self._authority + "/oauth2/v2.0/token", data=data)
         self._set_token(parse(response))
 
-    def _refresh_token(self):
-        t = None
-        if self._load_cache_handler is not None:
-            t = json.loads(self._load_cache_handler())
-        if t is not None:
-            print(t['access_token'])
-            data = {
-                'client_id': self._client_id,
-                'redirect_uri': self._redirect_uri,
-                'client_secret': self._secret,
-                'refresh_token': t['access_token'],
-                'grant_type': 'refresh_token',
-            }
-            response = requests.post(self._authority + "/oauth2/v2.0/token", data=data)
-            self._set_token(parse(response))
+    def _refresh_token(self, token):
+        data = {
+            'client_id': self._client_id,
+            'redirect_uri': self._redirect_uri,
+            'client_secret': self._secret,
+            'refresh_token': token['access_token'],
+            'grant_type': 'refresh_token',
+        }
+        response = requests.post(self._authority + "/oauth2/v2.0/token", data=data)
+        self._set_token(parse(response))
 
     def _set_token(self, token):
         if self._save_cache_handler is not None:
@@ -61,7 +56,9 @@ class Auth(object):
         self._token = token
 
     def get_token(self):
-        self._refresh_token()
+        if self._load_cache_handler is not None:
+            t = json.loads(self._load_cache_handler())
+            self._refresh_token(t)
         return self._token
 
 
