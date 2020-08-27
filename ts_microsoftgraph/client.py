@@ -375,5 +375,8 @@ class Client(object):
             # If you use the 'files' keyword, the library will set the Content-Type to multipart/form-data
             # and will generate a boundary.
             _headers['Content-Type'] = 'application/json'
+        print(method)
+        print(url)
+        print(str(**kwargs))
         return parse(requests.request(method, url, headers=_headers, **kwargs))
 
