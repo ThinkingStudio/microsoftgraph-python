@@ -50,7 +50,6 @@ class Auth(object):
             'scope': self._scope,  #'https://graph.microsoft.com/mail.read'
             'requested_token_use': 'on_behalf_of'
         }
-        print(data)
         response = requests.post(self._authority + "/oauth2/v2.0/token", data=data)
         self._set_token(parse(response))
 
@@ -60,6 +59,7 @@ class Auth(object):
         self._token = token
 
     def get_token(self):
+        print(self._load_cache_handler)
         if self._load_cache_handler is not None:
             self._token = json.loads(self._load_cache_handler())
             print(self._token)
