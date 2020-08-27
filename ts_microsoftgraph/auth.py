@@ -125,7 +125,7 @@ class Auth(object):
         params = {
             'client_id': self._client_id,
             'redirect_uri': self._redirect_uri,
-            'scope': ",".join(self._scope),
+            'scope': self._scope,
             'response_type': 'code',
             'response_mode': 'query',
             'state': self._state
