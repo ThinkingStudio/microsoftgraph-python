@@ -39,7 +39,8 @@ class Auth(object):
         response = requests.post(self._authority + "/oauth2/v2.0/token", data=data)
         self._set_token(parse(response))
 
-    def refresh_token(self, token):
+    def refresh_token(self):
+        token = self.get_token()
         data = {
             'client_id': self._client_id,
             'redirect_uri': self._redirect_uri,

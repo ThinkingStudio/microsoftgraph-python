@@ -1,17 +1,39 @@
 import base64
 import mimetypes
 import requests
+
+import ts_microsoftgraph.exceptions
+from ts_microsoftgraph.auth import Auth
 from ts_microsoftgraph.decorators import token_required
 from ts_microsoftgraph.reponse_parser import parse
 
 
 class Client(object):
     RESOURCE = 'https://graph.microsoft.com/'
-    def __init__(self, token, api_version='v1.0', context='me'):
+    def __init__(self, auth: Auth, api_version='v1.0', context='me'):
         self._api_version = api_version
         self._base_url = self.RESOURCE + self._api_version + '/'
-        self.token = token
+        self._auth = auth
+        self.token = auth.get_token()
         self._context = context
+
+    def try_for_valid_token(self) -> bool:
+        """
+        try to get a valid token, either through currently cached token or using a token refresh
+        :return: Boolean indicating if we have a valid token or need to perform a complete auth flow.
+            TRUE is valid token
+            FALSE is perform the login flow
+        """
+        try:
+            output = self.me()
+            return True
+        except ts_microsoftgraph.exceptions.Unauthorized as uex:
+            try:
+                self._auth.refresh_token()
+                output = self.me()
+                return True
+            except ts_microsoftgraph.exceptions.Unauthorized as uex:
+                return False
 
     @token_required
     def me(self, params=None):
