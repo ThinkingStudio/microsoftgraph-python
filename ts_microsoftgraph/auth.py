@@ -6,8 +6,6 @@ from ts_microsoftgraph.reponse_parser import parse
 import json
 
 """
-TODO: GET THIS AUTH SCOPE INTO ENUM
-
 Calendars.Read	Read user calendars	Allows the app to read events in user calendars.	No	Yes
 Calendars.Read.Shared	Read user and shared calendars 	Allows the app to read events in all calendars that the user can access, including delegate and shared calendars. 	No	No
 Calendars.ReadWrite	Have full access to user calendars	Allows the app to create, read, update, and delete events in user calendars.	No	Yes
@@ -44,25 +42,67 @@ profile	View users' basic profile	Allows the app to see your users' basic profil
 
 
 class AuthScope(Enum):
-    DEFAULT = 1
-    OFFLINE_ACCESS = 2
-    PROFILE = 3
-    MAIL_READ = 4
-    MAIL_READ_SHARED = 5
-    MAIL_SEND = 6
-    MAIL_SEND_SHARED = 7
-    MAILBOXSETTINGS_READ = 8
-    MAILBOXSETTINGS_READWRITE = 9
+    DEFAULT = 0
+    CALENDARS_READ = 1
+    CALENDARS_READ_SHARED = 2
+    CALENDARS_READWRITE	 = 3
+    CALENDARS_READWRITE_SHARED	 = 4
+    CONTACTS_READ = 5
+    CONTACTS_READ_SHARED = 6
+    CONTACTS_READWRITE = 7
+    CONTACTS_READWRITE_SHARED = 8
+    MAIL_READ = 9
+    MAIL_READBASIC = 10
+    MAIL_READWRITE = 11
+    MAIL_READ_SHARED = 12
+    MAIL_READWRITE_SHARED = 13
+    MAIL_SEND = 14
+    MAIL_SEND_SHARED = 15
+    MAILBOXSETTINGS_READ = 16
+    MAILBOXSETTINGS_READWRITE = 17
+    NOTES_READ = 18
+    NOTES_CREATE = 19
+    NOTES_READWRITE = 20
+    NOTES_READ_ALL = 21
+    NOTES_READWRITE_ALL = 22
+    NOTES_READWRITE_CREATEDBYAPP = 23
+    EMAIL = 24
+    OFFLINE_ACCESS = 25
+    OPENID = 26
+    PROFILE = 27
 
 
 class AuthScopeList(object):
     def __init__(self):
         self._lut = {
             AuthScope.DEFAULT : ".default",
-            AuthScope.OFFLINE_ACCESS: "offline_access",
-            AuthScope.PROFILE: "profile",
-            AuthScope.MAIL_READ: "Mail.Read",
-            AuthScope.MAIL_READ_SHARED: "Mail.Read.Shared"
+            AuthScope.CALENDARS_READ : "Calendars.Read",
+            AuthScope.CALENDARS_READ_SHARED :"Calendars.Read.Shared",
+            AuthScope.CALENDARS_READWRITE	 :"Calendars.ReadWrite",
+            AuthScope.CALENDARS_READWRITE_SHARED	 :"Calendars.ReadWrite.Shared",
+            AuthScope.CONTACTS_READ :"Contacts.Read",
+            AuthScope.CONTACTS_READ_SHARED :"Contacts.Read.Shared",
+            AuthScope.CONTACTS_READWRITE :"Contacts.ReadWrite",
+            AuthScope.CONTACTS_READWRITE_SHARED :"Contacts.ReadWrite.Shared",
+            AuthScope.MAIL_READ :"Mail.Read",
+            AuthScope.MAIL_READBASIC : "Mail.ReadBasic",
+            AuthScope.MAIL_READWRITE : "Mail.ReadWrite",
+            AuthScope.MAIL_READ_SHARED : "Mail.Read.Shared",
+            AuthScope.MAIL_READWRITE_SHARED : "Mail.ReadWrite.Shared",
+            AuthScope.MAIL_SEND : "Mail.Send",
+            AuthScope.MAIL_SEND_SHARED : "Mail.Send.Shared",
+            AuthScope.MAILBOXSETTINGS_READ : "MailboxSettings.Read",
+            AuthScope.MAILBOXSETTINGS_READWRITE : "MailboxSettings.ReadWrite",
+            AuthScope.NOTES_READ : "Notes.Read",
+            AuthScope.NOTES_CREATE : "Notes.Create",
+            AuthScope.NOTES_READWRITE : "Notes.ReadWrite",
+            AuthScope.NOTES_READ_ALL : "Notes.Read.All",
+            AuthScope.NOTES_READWRITE_ALL : "Notes.ReadWrite.All",
+            AuthScope.NOTES_READWRITE_CREATEDBYAPP : "Notes.ReadWrite.CreatedByApp",
+            AuthScope.EMAIL : "email",
+            AuthScope.OFFLINE_ACCESS : "offline_access",
+            AuthScope.OPENID : "openid",
+            AuthScope.PROFILE : "profile"
         }
         self._flags = list()
 
