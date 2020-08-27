@@ -42,15 +42,13 @@ class Auth(object):
     def refresh_token(self):
         token = self.get_token()
         data = {
+            'grant_type': 'refresh_token',
             'client_id': self._client_id,
             'redirect_uri': self._redirect_uri,
             'client_secret': self._secret,
             'refresh_token': token['access_token'],
-            'grant_type': 'refresh_token',
-            'scope': self._scope,  #'https://graph.microsoft.com/mail.read'
-            'requested_token_use': 'on_behalf_of'
+            'scope': self._scope  #'https://graph.microsoft.com/mail.read'
         }
-        print(token['access_token'])
         response = requests.post(self._authority + "/oauth2/v2.0/token", data=data)
         self._set_token(parse(response))
 
