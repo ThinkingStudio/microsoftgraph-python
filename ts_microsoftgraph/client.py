@@ -377,6 +377,6 @@ class Client(object):
             _headers['Content-Type'] = 'application/json'
         print(method)
         print(url)
-        print(str(**kwargs))
+        print(str(kwargs))
         return parse(requests.request(method, url, headers=_headers, **kwargs))
 
