@@ -54,17 +54,19 @@ class AuthScope(Enum):
     MAILBOXSETTINGS_READ = 8
     MAILBOXSETTINGS_READWRITE = 9
 
+
+class AuthScopeList(object):
     def __init__(self):
         self._lut = {
-            self.DEFAULT : ".default",
-            self.OFFLINE_ACCESS: "offline_access",
-            self.PROFILE: "profile",
-            self.MAIL_READ: "Mail.Read",
-            self.MAIL_READ_SHARED: "Mail.Read.Shared"
+            AuthScope.DEFAULT : ".default",
+            AuthScope.OFFLINE_ACCESS: "offline_access",
+            AuthScope.PROFILE: "profile",
+            AuthScope.MAIL_READ: "Mail.Read",
+            AuthScope.MAIL_READ_SHARED: "Mail.Read.Shared"
         }
         self._flags = list()
 
-    def add_scope(self, scope_enum):
+    def add_scope(self, scope_enum: AuthScope):
         self._flags.append(self._lut[scope_enum])
 
     def __str__(self):
@@ -89,7 +91,7 @@ class Auth(object):
         :param client_id: required MS client_id provided by Azure
         :param tenant_id: required MS tenant_id provided by Azure
         :param secret: required MS tenant_id provided by Azure
-        :param scope: a single or set of scopes - you can use a single string, a list of strings, or an AuthScope for this
+        :param scope: a single or set of scopes - you can use a single string, a list of strings, or an AuthScope or an AuthScopeList for this
         :param account: this is a long UID value representing your Azure account ID
         :param redirect_uri: the URI that handles your auth code - the default value is "https://login.microsoftonline.com/common/oauth2/nativeclient"
         :param save_cache_handler: this is a function that handles a single parameter which is the JSON token. This needs to be serialised and saved
@@ -98,7 +100,11 @@ class Auth(object):
         """
         if type(scope) is str:
             self._scope = scope
+        elif type(scope) is AuthScopeList:
+            self._scope = str(scope)
         elif type(scope) is AuthScope:
+            asl = AuthScopeList()
+            asl.add_scope(scope)
             self._scope = str(scope)
         elif type(scope) is list:
             self._scope = ",".join(scope)
