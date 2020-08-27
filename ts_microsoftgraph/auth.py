@@ -59,9 +59,8 @@ class Auth(object):
         self._token = token
 
     def get_token(self):
-        print(self._load_cache_handler)
-        if self._load_cache_handler is not None:
-            self._token = json.loads(self._load_cache_handler())
-            print(self._token)
-            print(self._token['access_token'])
-        return self._token
+        token = self._token
+        if token is None:
+            if self._load_cache_handler is not None:
+                token = json.loads(self._load_cache_handler())
+        return token
