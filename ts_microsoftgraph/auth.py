@@ -35,6 +35,7 @@ class Auth(object):
             'client_secret': self._secret,
             'code': code,
             'grant_type': 'authorization_code',
+            'scope': self._scope
         }
         response = requests.post(self._authority + "/oauth2/v2.0/token", data=data)
         self._set_token(parse(response))
@@ -46,7 +47,7 @@ class Auth(object):
             'client_id': self._client_id,
             'redirect_uri': self._redirect_uri,
             'client_secret': self._secret,
-            'refresh_token': token['access_token'],
+            'refresh_token': token['refresh_token'],
             'scope': self._scope  #'https://graph.microsoft.com/mail.read'
         }
         response = requests.post(self._authority + "/oauth2/v2.0/token", data=data)
