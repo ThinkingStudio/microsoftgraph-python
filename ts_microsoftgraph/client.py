@@ -1,7 +1,6 @@
 import base64
 import mimetypes
 import requests
-
 import ts_microsoftgraph.exceptions
 from ts_microsoftgraph.auth import Auth
 from ts_microsoftgraph.decorators import token_required
@@ -30,7 +29,7 @@ class Client(object):
         except ts_microsoftgraph.exceptions.Unauthorized as uex:
             try:
                 self._auth.refresh_token()
-                output = self.me()
+                output = self.me() #TODO: change this as it can fail in shared mailbox context
                 return True
             except ts_microsoftgraph.exceptions.Unauthorized as uex:
                 return False
@@ -130,6 +129,13 @@ class Client(object):
             A dict.
         """
         return self._get(self._base_url + self._context + '/mailFolders/{id}/messages'.format(id=folder_id), params=params)
+
+    @token_required
+    def message_list_next(self, last_response_payload):
+        if "@odata.nextLink" in last_response_payload.keys():
+            return self._get(last_response_payload["@odata.nextLink"])
+        else:
+            return None
 
     @token_required
     def message_get(self, message_id, params=None, mime_content=False):
