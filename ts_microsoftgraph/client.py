@@ -371,18 +371,15 @@ class Client(object):
         return self._request('DELETE', url, **kwargs)
 
     def _request(self, method, url, headers=None, **kwargs):
-        _headers = {
-            'Accept': 'application/json',
-        }
-        _headers['Authorization'] = 'Bearer ' + self.token['access_token']
+        _headers = {'Accept': 'application/json', 'Authorization': 'Bearer ' + self.token['access_token']}
         if headers:
             _headers.update(headers)
         if 'files' not in kwargs:
             # If you use the 'files' keyword, the library will set the Content-Type to multipart/form-data
             # and will generate a boundary.
             _headers['Content-Type'] = 'application/json'
-        print(method)
-        print(url)
-        print(str(kwargs))
+        # print(method)
+        # print(url)
+        # print(str(kwargs))
         return parse(requests.request(method, url, headers=_headers, **kwargs))
 
