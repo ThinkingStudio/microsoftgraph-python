@@ -24,12 +24,12 @@ class Client(object):
             FALSE is perform the login flow
         """
         try:
-            output = self.me()
+            output = self._get(self._base_url + "me")
             return True
         except ts_microsoftgraph.exceptions.Unauthorized as uex:
             try:
                 self._auth.refresh_token()
-                output = self.me() #TODO: change this as it can fail in shared mailbox context
+                output = self._get(self._base_url + "me")
                 return True
             except ts_microsoftgraph.exceptions.Unauthorized as uex:
                 return False
