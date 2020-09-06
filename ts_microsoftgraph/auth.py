@@ -112,6 +112,8 @@ class AuthScopeList(object):
     def __str__(self):
         return ",".join(self._flags)
 
+    def as_list(self):
+        return self._flags
 
 
 class Auth(object):
@@ -141,13 +143,13 @@ class Auth(object):
         if type(scope) is str:
             self._scope = scope
         elif type(scope) is AuthScopeList:
-            self._scope = str(scope)
+            self._scope = scope.as_list()
         elif type(scope) is AuthScope:
             asl = AuthScopeList()
             asl.add_scope(scope)
             self._scope = str(scope)
         elif type(scope) is list:
-            self._scope = ",".join(scope)
+            self._scope = scope #",".join(scope)
         else:
             self._scope = ".default"
 
