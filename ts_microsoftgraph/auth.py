@@ -167,6 +167,7 @@ class Auth(object):
         params = {
             'client_id': self._client_id,
             'redirect_uri': self._redirect_uri,
+            'scope': self._scope,
             'response_type': 'code',
             'response_mode': 'query',
             'state': self._state
@@ -177,10 +178,10 @@ class Auth(object):
         data = {
             'client_id': self._client_id,
             'redirect_uri': self._redirect_uri,
+            'scope': self._scope,
             'client_secret': self._secret,
             'code': code,
-            'grant_type': 'authorization_code',
-            'scope': self._scope
+            'grant_type': 'authorization_code'
         }
         print(data)
         response = requests.post(self._authority + "/oauth2/v2.0/token", data=data)
