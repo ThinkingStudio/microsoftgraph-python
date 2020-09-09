@@ -147,12 +147,18 @@ class Auth(object):
         elif type(scope) is AuthScope:
             asl = AuthScopeList()
             asl.add_scope(scope)
-            self._scope = str(asl)
+            self._scope = scope.as_list()
         elif type(scope) is list:
             self._scope = scope #",".join(scope)
         else:
             self._scope = ".default"
-
+        # fix scope formatting as apparently, scopes need to be
+        # separated by _spaces_ which of course is documented
+        # only in an example on some random MS web page
+        if type(self._scope) is list:
+            self._scope = " ".join(self._scope)
+        else:
+            self._scope = str(self._scope).strip()
         self._authority = "https://login.microsoftonline.com/" + tenant_id
         self._client_id = client_id
         self._secret = secret
@@ -164,37 +170,24 @@ class Auth(object):
         self._account = account
 
     def authorization_url(self):
-        # fix embedded list in JSON as urlencode for GET is breaking it
-        # needs to be separated by _spaces_ which of course is documented
-        # only in an example on some random MS web page
-        s = ""
-        if type(self._scope) is list:
-            s = " ".join(self._scope)
-        else:
-            s = str(self._scope).strip()
         params = {
             'client_id': self._client_id,
             'redirect_uri': self._redirect_uri,
             'response_type': 'code',
             'response_mode': 'query',
             'state': self._state,
-            'scope': s
+            'scope': self._scope
         }
         return self._authority + "/oauth2/v2.0/authorize?" + urlencode(params)
 
     def exchange_code(self, code):
-        s = ""
-        if type(self._scope) is list:
-            s = " ".join(self._scope)
-        else:
-            s = str(self._scope).strip()
         data = {
+            'grant_type': 'authorization_code',
             'client_id': self._client_id,
             'redirect_uri': self._redirect_uri,
-            'scope': s,
             'client_secret': self._secret,
             'code': code,
-            'grant_type': 'authorization_code'
+            'scope': self._scope
         }
         print(data)
         response = requests.post(self._authority + "/oauth2/v2.0/token", data=data)

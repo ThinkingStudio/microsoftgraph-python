@@ -36,11 +36,15 @@ class Client(object):
 
     @token_required
     def me(self, params=None):
-        """Retrieve the properties and relationships of user object.
+        """Retrieve the properties and relationships of user object in given context.
 
         Note: Getting a user returns a default set of properties only (businessPhones, displayName, givenName, id,
         jobTitle, mail, mobilePhone, officeLocation, preferredLanguage, surname, userPrincipalName).
         Use $select to get the other properties and relationships for the user object.
+
+        Also, note that a given context may not provide you with permissions to see their properties - even though you
+        can read their email (for example - email delegation) - I was trying to figure out why this call failed when I
+        had a delegation. Caveat Emptor! (maybe creo quia absurdum est would be more apt)
 
         Args:
             params: A dict.
