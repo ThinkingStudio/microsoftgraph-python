@@ -169,7 +169,8 @@ class Auth(object):
             'redirect_uri': self._redirect_uri,
             'response_type': 'code',
             'response_mode': 'query',
-            'state': self._state
+            'state': self._state,
+            'scope': self._scope
         }
         return self._authority + "/oauth2/v2.0/authorize?" + urlencode(params)
 
