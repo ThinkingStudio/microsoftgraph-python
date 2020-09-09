@@ -183,10 +183,15 @@ class Auth(object):
         return self._authority + "/oauth2/v2.0/authorize?" + urlencode(params)
 
     def exchange_code(self, code):
+        s = ""
+        if type(self._scope) is list:
+            s = " ".join(self._scope)
+        else:
+            s = str(self._scope).strip()
         data = {
             'client_id': self._client_id,
             'redirect_uri': self._redirect_uri,
-            'scope': self._scope,
+            'scope': s,
             'client_secret': self._secret,
             'code': code,
             'grant_type': 'authorization_code'
