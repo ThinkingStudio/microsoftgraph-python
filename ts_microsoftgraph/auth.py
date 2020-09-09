@@ -76,29 +76,29 @@ class AuthScopeList(object):
     def __init__(self):
         self._lut = {
             AuthScope.DEFAULT : ".default",
-            AuthScope.CALENDARS_READ : "Calendars.Read",
-            AuthScope.CALENDARS_READ_SHARED :"Calendars.Read.Shared",
-            AuthScope.CALENDARS_READWRITE	 :"Calendars.ReadWrite",
-            AuthScope.CALENDARS_READWRITE_SHARED	 :"Calendars.ReadWrite.Shared",
-            AuthScope.CONTACTS_READ :"Contacts.Read",
-            AuthScope.CONTACTS_READ_SHARED :"Contacts.Read.Shared",
-            AuthScope.CONTACTS_READWRITE :"Contacts.ReadWrite",
-            AuthScope.CONTACTS_READWRITE_SHARED :"Contacts.ReadWrite.Shared",
-            AuthScope.MAIL_READ :"Mail.Read",
-            AuthScope.MAIL_READBASIC : "Mail.ReadBasic",
-            AuthScope.MAIL_READWRITE : "Mail.ReadWrite",
-            AuthScope.MAIL_READ_SHARED : "Mail.Read.Shared",
-            AuthScope.MAIL_READWRITE_SHARED : "Mail.ReadWrite.Shared",
-            AuthScope.MAIL_SEND : "Mail.Send",
-            AuthScope.MAIL_SEND_SHARED : "Mail.Send.Shared",
-            AuthScope.MAILBOXSETTINGS_READ : "MailboxSettings.Read",
-            AuthScope.MAILBOXSETTINGS_READWRITE : "MailboxSettings.ReadWrite",
-            AuthScope.NOTES_READ : "Notes.Read",
-            AuthScope.NOTES_CREATE : "Notes.Create",
-            AuthScope.NOTES_READWRITE : "Notes.ReadWrite",
-            AuthScope.NOTES_READ_ALL : "Notes.Read.All",
-            AuthScope.NOTES_READWRITE_ALL : "Notes.ReadWrite.All",
-            AuthScope.NOTES_READWRITE_CREATEDBYAPP : "Notes.ReadWrite.CreatedByApp",
+            AuthScope.CALENDARS_READ : "https://graph.microsoft.com/Calendars.Read",
+            AuthScope.CALENDARS_READ_SHARED :"https://graph.microsoft.com/Calendars.Read.Shared",
+            AuthScope.CALENDARS_READWRITE :"https://graph.microsoft.com/Calendars.ReadWrite",
+            AuthScope.CALENDARS_READWRITE_SHARED :"https://graph.microsoft.com/Calendars.ReadWrite.Shared",
+            AuthScope.CONTACTS_READ : "https://graph.microsoft.com/Contacts.Read",
+            AuthScope.CONTACTS_READ_SHARED : "https://graph.microsoft.com/Contacts.Read.Shared",
+            AuthScope.CONTACTS_READWRITE : "https://graph.microsoft.com/Contacts.ReadWrite",
+            AuthScope.CONTACTS_READWRITE_SHARED : "https://graph.microsoft.com/Contacts.ReadWrite.Shared",
+            AuthScope.MAIL_READ : "https://graph.microsoft.com/Mail.Read",
+            AuthScope.MAIL_READBASIC : "https://graph.microsoft.com/Mail.ReadBasic",
+            AuthScope.MAIL_READWRITE : "https://graph.microsoft.com/Mail.ReadWrite",
+            AuthScope.MAIL_READ_SHARED : "https://graph.microsoft.com/Mail.Read.Shared",
+            AuthScope.MAIL_READWRITE_SHARED : "https://graph.microsoft.com/Mail.ReadWrite.Shared",
+            AuthScope.MAIL_SEND : "https://graph.microsoft.com/Mail.Send",
+            AuthScope.MAIL_SEND_SHARED : "https://graph.microsoft.com/Mail.Send.Shared",
+            AuthScope.MAILBOXSETTINGS_READ : "https://graph.microsoft.com/MailboxSettings.Read",
+            AuthScope.MAILBOXSETTINGS_READWRITE : "https://graph.microsoft.com/MailboxSettings.ReadWrite",
+            AuthScope.NOTES_READ : "https://graph.microsoft.com/Notes.Read",
+            AuthScope.NOTES_CREATE : "https://graph.microsoft.com/Notes.Create",
+            AuthScope.NOTES_READWRITE : "https://graph.microsoft.com/Notes.ReadWrite",
+            AuthScope.NOTES_READ_ALL : "https://graph.microsoft.com/Notes.Read.All",
+            AuthScope.NOTES_READWRITE_ALL : "https://graph.microsoft.com/Notes.ReadWrite.All",
+            AuthScope.NOTES_READWRITE_CREATEDBYAPP : "https://graph.microsoft.com/Notes.ReadWrite.CreatedByApp",
             AuthScope.EMAIL : "email",
             AuthScope.OFFLINE_ACCESS : "offline_access",
             AuthScope.OPENID : "openid",
@@ -165,9 +165,11 @@ class Auth(object):
 
     def authorization_url(self):
         # fix embedded list in JSON as urlencode for GET is breaking it
+        # needs to be separated by _spaces_ which of course is documented
+        # only in an example on some random MS web page
         s = ""
         if type(self._scope) is list:
-            s = ",".join(self._scope)
+            s = " ".join(self._scope)
         else:
             s = str(self._scope).strip()
         params = {
