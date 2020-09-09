@@ -147,7 +147,7 @@ class Auth(object):
         elif type(scope) is AuthScope:
             asl = AuthScopeList()
             asl.add_scope(scope)
-            self._scope = str(scope)
+            self._scope = str(asl)
         elif type(scope) is list:
             self._scope = scope #",".join(scope)
         else:
@@ -164,13 +164,19 @@ class Auth(object):
         self._account = account
 
     def authorization_url(self):
+        # fix embedded list in JSON as urlencode for GET is breaking it
+        s = ""
+        if type(self._scope) is list:
+            s = ",".join(self._scope)
+        else:
+            s = str(self._scope).strip()
         params = {
             'client_id': self._client_id,
             'redirect_uri': self._redirect_uri,
             'response_type': 'code',
             'response_mode': 'query',
             'state': self._state,
-            'scope': self._scope
+            'scope': s
         }
         return self._authority + "/oauth2/v2.0/authorize?" + urlencode(params)
 
