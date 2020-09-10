@@ -218,5 +218,9 @@ class Auth(object):
         token = self._token
         if token is None:
             if self._load_cache_handler is not None:
-                token = json.loads(self._load_cache_handler())
+                t_src = self._load_cache_handler()
+                if t_src is None:
+                    return None
+                else:
+                    return json.loads(t_src)
         return token
