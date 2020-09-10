@@ -2,6 +2,8 @@ import uuid
 from enum import Enum
 from urllib.parse import urlencode
 import requests
+
+from ts_microsoftgraph import exceptions
 from ts_microsoftgraph.reponse_parser import parse
 import json
 
@@ -194,6 +196,8 @@ class Auth(object):
 
     def refresh_token(self):
         token = self.get_token()
+        if token is None:
+            raise exceptions.Unauthorized("No valid token exists in the cache to refresh")
         data = {
             'grant_type': 'refresh_token',
             'client_id': self._client_id,
