@@ -189,7 +189,6 @@ class Auth(object):
             'code': code,
             'scope': self._scope
         }
-        print(data)
         response = requests.post(self._authority + "/oauth2/v2.0/token", data=data)
         self._set_token(parse(response))
 
