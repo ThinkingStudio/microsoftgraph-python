@@ -24,15 +24,10 @@ class Client(object):
             FALSE is perform the login flow
         """
         try:
-            output = self._get(self._base_url + "me")
+            self._auth.refresh_token()
             return True
         except ts_microsoftgraph.exceptions.Unauthorized as uex:
-            try:
-                self._auth.refresh_token()
-                output = self._get(self._base_url + "me")
-                return True
-            except ts_microsoftgraph.exceptions.Unauthorized as uex:
-                return False
+            return False
 
     @token_required
     def me(self, params=None):
